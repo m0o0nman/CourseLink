@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }} · CourseLink</title>
+<link rel="stylesheet" href="{{url_for('static',filename='bootstrap.min.css')}}"><link rel="stylesheet" href="{{url_for('static',filename='portal.css')}}"><link rel="icon" href="/static/courselink-symbol.png"></head>
+<body>{% macro brand() %}<span class="brand" role="img" aria-label="CourseLink"></span>{% endmacro %}
+{% macro token() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+{% macro messages() %}{% for category,msg in get_flashed_messages(with_categories=true) %}<div role="status" class="notice {{ category }}">{{msg}}</div>{% endfor %}{% endmacro %}
+{% macro nav(href,label) %}<a href="{{href}}" {% if request.path==href %}aria-current="page"{% endif %}>{{label}}</a>{% endmacro %}
+{% if current_user.is_authenticated %}<div class="shell"><aside><a href="/" class="wordmark">{{ brand() }}</a><details open><summary>Workspace menu</summary><nav>
+{{nav('/'+current_user.role+'/dashboard','Overview')}}
+{% if current_user.role=='student' %}{{nav('/student/courses','Course catalog')}}{{nav('/student/registrations','My registrations')}}{{nav('/student/results','Academic results')}}
+{% else %}{{nav('/catalog','Course catalog')}}{% endif %}
+{% if current_user.role=='admin' %}<small>ACADEMIC MANAGEMENT</small>{% for e in ['departments','students','teachers','courses','offerings','prerequisites'] %}{{nav('/admin/'+e,e.title())}}{% endfor %}<small>ADMINISTRATION</small>{{nav('/admin/accounts','Account review')}}{{nav('/admin/records','Academic records')}}{{nav('/admin/audit','Enrollment audit')}}{% endif %}
+{{nav('/account/profile','My profile')}}</nav></details><form class="logout" method="post" action="/auth/logout">{{token()}}<button>Sign out ↗</button></form></aside>
+<div class="workspace"><header><span>Academic portal <b>/</b> {{current_user.role|title}}</span><a href="/account/profile"><span class="avatar">{{current_user.name[0]}}</span>{{current_user.name}}</a></header><main>{{messages()}}<div class="pagehead"><h1>{{title}}</h1>{% if action %}<a class="primary" href="{{action[0]}}">{{action[1]}} →</a>{% endif %}</div>
+{% block content %}{% endblock %}</main></div></div>
+{% else %}{% block public %}{% endblock %}{% endif %}</body></html>

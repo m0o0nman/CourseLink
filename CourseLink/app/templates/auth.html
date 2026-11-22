@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% block public %}<div class="signin"><section class="identity">
+{{brand()}}<div class="intro"><h1>academic<br>portal<span>.</span></h1><p>Course registration, teaching, and academic records in one place.</p></div></section>
+<main class="authform"><div><h2>{{title}}</h2><p class="subtitle">{{'Submit your academic ID for administrator approval.' if signup else 'Sign in to your CourseLink account.'}}</p>{{messages()}}
+<form method="post">{{form.hidden_tag()}}
+{% for field in ([form.role,form.academic_id,form.email,form.password,form.confirm] if signup else [form.email,form.password]) %}
+<label for="{{field.id}}">{{field.label.text}}</label>
+{% if field.name=='email' %}{{field(type='email',autocomplete='email',placeholder='you@university.edu')}}{% elif field.type=='PasswordField' %}{{field(autocomplete='new-password' if signup else 'current-password')}}{% else %}{{field()}}{% endif %}
+{% if signup and field.name=='password' %}<small>Use at least 12 characters.</small>{% endif %}{% for msg in field.errors %}<div class="field-error">{{msg}}</div>{% endfor %}{% endfor %}
+<button class="primary wide">{{'Submit account request' if signup else 'Sign in'}} <span>→</span></button></form>
+<p class="authswitch">{{'Already have an account?' if signup else 'New to CourseLink?'}} <a href="{{'/auth/login' if signup else '/auth/register'}}">{{'Sign in' if signup else 'Request an account'}}</a></p></div></main></div>
+{% endblock %}

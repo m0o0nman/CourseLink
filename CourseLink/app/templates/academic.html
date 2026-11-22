@@ -1,0 +1,13 @@
+{% extends 'base.html' %}{% block content %}
+{% if cards %}<div class="metrics">{% for label,n in cards.items() %}<article><span>{{label}}</span><strong>{{n if n is not none else 'Not available'}}</strong></article>{% endfor %}</div>{% endif %}
+{% if catalog %}<form class="filters" method="get"><label>Course<input name="q" value="{{request.args.get('q','')}}" placeholder="Search name or code"></label>
+{% for field,choices in [('department',depts|map(attribute='dept_code')|list),('semester',['Spring','Summer','Fall'])] %}<label>{{field.title()}}<select name="{{field}}"><option value="">All</option>{% for choice in choices %}<option {% if request.args.get(field)==choice %}selected{% endif %}>{{choice}}</option>{% endfor %}</select></label>{% endfor %}
+<label>Year<input type="number" name="year" placeholder="All years" value="{{request.args.get('year','')}}"></label><button>Apply filters</button><a href="{{request.path}}">Reset</a></form>{% endif %}
+<section class="panel"><div class="panelhead"><h2>{{section}}</h2><span>{{items|length}} offerings</span></div>
+<div class="scroll"><table><thead><tr><th>Course</th><th>Academic term</th><th>Instructor</th><th>Credits</th><th>{{'Grade' if request.path=='/student/results' else 'Seats available'}}</th><th>Status</th><th></th></tr></thead><tbody>
+{% for r in items %}<tr><td><b class="code">{{r.course_code}}</b><strong>{{r.title}}</strong></td><td>{{r.semester}} {{r.year}}<small>Section {{r.section}}</small></td><td>{{r.teacher}}</td><td>{{r.credits}}</td>
+<td>{% if request.path=='/student/results' %}{{r.grade_point}}{% else %}{{r.remaining_seats}} / {{r.capacity}}{% endif %}</td><td><span class="pill {{r.enrollment_status or r.status}}">{{r.enrollment_status or r.status}}</span></td>
+<td>{% if current_user.role=='student' and catalog and r.status=='open' %}<form method="post" action="/student/enroll/{{r.offering_id}}">{{token()}}<button>Register</button></form>
+{% elif current_user.role=='student' and r.enrollment_status=='enrolled' and r.status=='open' %}<form method="post" action="/student/drop/{{r.offering_id}}" onsubmit="return confirm('Withdraw from this offering? You cannot register in this section again.')">{{token()}}<button>Withdraw</button></form>
+{% elif current_user.role=='admin' or (current_user.role=='teacher' and current_user.teacher_id==r.teacher_id) %}<a href="/teacher/offering/{{r.offering_id}}">Roster →</a>{% endif %}</td></tr>
+{% else %}<tr><td colspan="7" class="empty">No courses to display.</td></tr>{% endfor %}</tbody></table></div></section>{% endblock %}
